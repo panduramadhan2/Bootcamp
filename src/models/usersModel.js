@@ -19,7 +19,11 @@ const User = sequelize.define(
       allowNull: false,
     },
     pin: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
+      validate: {
+        isNumeric: true,
+        len: [8, 8],
+      },
     },
     registrationCode: {
       type: DataTypes.STRING,

@@ -58,17 +58,28 @@ export const Login = async (req, res) => {
         .json({ error: "Invalid credentials or registration code." });
     }
 
-    // If PIN is provided, update the user's PIN in the database
+    // If PIN is not provided, redirect to PIN creation endpoint
+    if (!user.pin) {
+      return res
+        .status(302)
+        .json({
+          message: "Login successful please create your PIN",
+          redirect: "/create-pin",
+          userId: user.id,
+        });
+    }
+
+    // If PIN is provided, validate and update the user's PIN in the database
     if (pin) {
-      if (pin.length !== 8) {
+      const pinAsString = pin.toString(); // Convert to string to handle leading zeros
+
+      if (pinAsString.length !== 8 || !/^\d+$/.test(pinAsString)) {
         return res.status(400).json({ error: "PIN must be 8 digits." });
       }
 
-      const hashedPin = await bcrypt.hash(pin, 10);
+      const hashedPin = await bcrypt.hash(pinAsString, 10);
       user = await user.update({ pin: hashedPin });
     }
-
-    // Implement your authentication logic here (e.g., generate JWT token)
 
     res.json({
       message: "Login successful.",
