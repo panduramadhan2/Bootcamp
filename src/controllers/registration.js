@@ -1,31 +1,32 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import User from "../models/usersModel.js";
 import {
-  generateActivationCode,
+  // generateActivationCode,
+  generateAuthToken,
+  generateRegistrationCode,
   sendActivationEmail,
 } from "../utils/activationUtils.js";
 
 export const Register = async (req, res) => {
   try {
     // Extract user details from the request body
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
+
+    // Generate a registration code
+    const registrationCode = generateRegistrationCode(); // Implement this function
 
     // Create a new user record in the database
     const newUser = await User.create({
+      name,
       email,
       password,
+      registrationCode,
     });
 
-    // Generate an activation code (you can use a library for this)
-    const activationCode = generateActivationCode();
-
-    // Save the activation code in the user record
-    newUser.activationCode = activationCode;
-    await newUser.save();
-
-    // Send the activation code to the user's email (you can use a library for this)
-    sendActivationEmail(email, activationCode);
+    // Send the activation email with the registration code
+    sendActivationEmail(email, registrationCode);
 
     // Respond to the client
     res.status(201).json({
@@ -37,33 +38,44 @@ export const Register = async (req, res) => {
   }
 };
 
-export const Activation = async (req, res) => {
+export const Login = async (req, res) => {
   try {
-    const { email, activationCode } = req.body;
+    const { name, email, password, registrationCode } = req.body;
 
-    // Find the user by email and activation code
+    // Find the user by email, password, and registration code
     const user = await User.findOne({
       where: {
+        name,
         email,
-        activationCode,
+        password,
+        registrationCode,
       },
     });
 
     if (!user) {
       return res
-        .status(404)
-        .json({ error: "Invalid activation code or email." });
+        .status(401)
+        .json({ error: "Invalid credentials or registration code." });
     }
 
-    // Activate the user account
-    user.isActive = true;
-    await user.save();
+    // If PIN is provided, update the user's PIN in the database
+    if (pin) {
+      if (pin.length !== 8) {
+        return res.status(400).json({ error: "PIN must be 8 digits." });
+      }
+
+      const hashedPin = await bcrypt.hash(pin, 10);
+      user = await user.update({ pin: hashedPin });
+    }
+
+    // Implement your authentication logic here (e.g., generate JWT token)
 
     res.json({
-      message: "Account activated successfully. You can now log in.",
+      message: "Login successful.",
+      token: generateAuthToken(user), // Implement this function
     });
   } catch (error) {
-    console.error("Error activating account:", error);
+    console.error("Error during login:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
