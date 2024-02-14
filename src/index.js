@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import bodyParser from "body-parser";
 
 import { sequelize } from "./config/database.js";
 import synchronizeDatabase from "./config/synchronizeDatabase.js";
@@ -23,6 +24,7 @@ const app = express();
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
   app.use(cookieParser());
   app.use(express.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
   // Apply the rate limiter middleware globally
   app.use(limiter);
   app.use(router);

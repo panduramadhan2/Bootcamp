@@ -1,23 +1,25 @@
+import dotenv from "dotenv";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+
+dotenv.config();
 
 export const generateActivationCode = () => {
   return crypto.randomBytes(20).toString("hex");
 };
 
-export const sendActivationEmail = (req, res) => {
-  const { email, activationCode } = req.body;
-
+export const sendActivationEmail = (email, activationCode) => {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp-relay.brevo.com",
+    port: 587,
     auth: {
-      user: req.body.email, // Assuming req.body.email contains the email
-      pass: req.body.password, // Assuming req.body.password contains the password
+      user: process.env.BREVOEMAIL,
+      pass: process.env.BREVOSMTPKEY,
     },
   });
 
   const mailOptions = {
-    from: req.body.email,
+    from: process.env.BREVOEMAIL,
     to: email,
     subject: "Activate Your Account",
     text: `Your activation code is: ${activationCode}`,
@@ -26,10 +28,9 @@ export const sendActivationEmail = (req, res) => {
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.error("Error sending email:", error);
-      return res.status(500).json({ error: "Error sending activation email" });
+      // Handle the error appropriately
+    } else {
+      console.log("Email sent:", info.response);
     }
-
-    console.log("Email sent:", info.response);
-    res.status(200).json({ message: "Activation email sent successfully" });
   });
 };
