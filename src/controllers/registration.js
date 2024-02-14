@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/usersModel.js";
 import {
-  // generateActivationCode,
   generateAuthToken,
   generateRegistrationCode,
   sendActivationEmail,
@@ -60,13 +59,11 @@ export const Login = async (req, res) => {
 
     // If PIN is not provided, redirect to PIN creation endpoint
     if (!user.pin) {
-      return res
-        .status(302)
-        .json({
-          message: "Login successful please create your PIN",
-          redirect: "/create-pin",
-          userId: user.id,
-        });
+      return res.status(302).json({
+        message: "Login successful please create your PIN",
+        redirect: "/create-pin",
+        userId: user.id,
+      });
     }
 
     // If PIN is provided, validate and update the user's PIN in the database

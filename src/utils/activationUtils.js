@@ -5,28 +5,16 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-// Generate registration code
-export const generateRegistrationCode = () => {
-  const codeLength = 6; // Length of the registration code
-  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let registrationCode = "";
-  for (let i = 0; i < codeLength; i++) {
-    const randomIndex = crypto.randomInt(0, charset.length);
-    registrationCode += charset[randomIndex];
-  }
-  return registrationCode;
-};
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  auth: {
+    user: process.env.BREVOEMAIL,
+    pass: process.env.BREVOSMTPKEY,
+  },
+});
 
 export const sendActivationEmail = (email, registrationCode) => {
-  const transporter = nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 587,
-    auth: {
-      user: process.env.BREVOEMAIL,
-      pass: process.env.BREVOSMTPKEY,
-    },
-  });
-
   const mailOptions = {
     from: process.env.BREVOEMAIL,
     to: email,
@@ -36,12 +24,42 @@ export const sendActivationEmail = (email, registrationCode) => {
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error("Error sending email:", error);
-      // Handle the error appropriately
+      console.error("Error sending activation email:", error);
     } else {
-      console.log("Email sent:", info.response);
+      console.log("Activation email sent:", info.response);
     }
   });
+};
+
+export const sendPasswordResetEmail = (email, resetToken) => {
+  const mailOptions = {
+    from: process.env.BREVOEMAIL,
+    to: email,
+    subject: "Password Reset",
+    html: `
+      <p>Click the following link to reset your password:</p>
+      <p><a href="http://localhost:5000/reset-password/${resetToken}">Reset Password</a></p>
+    `,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending password reset email:", error);
+    } else {
+      console.log("Password reset email sent:", info.response);
+    }
+  });
+};
+
+export const generateRegistrationCode = () => {
+  const codeLength = 6;
+  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let registrationCode = "";
+  for (let i = 0; i < codeLength; i++) {
+    const randomIndex = crypto.randomInt(0, charset.length);
+    registrationCode += charset[randomIndex];
+  }
+  return registrationCode;
 };
 
 // Generate JWT token for user
