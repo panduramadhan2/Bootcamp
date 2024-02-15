@@ -1,8 +1,8 @@
-import ExpensePlan from "../models/expense_plans";
-import Expense from "../models/expensesModel";
-import Income from "../models/incomesModel";
-import Report from "../models/report";
-import UserTransaction from "../models/user_transactions";
+import ExpensePlan from "../models/expense_plans.js";
+import Expense from "../models/expensesModel.js";
+import Income from "../models/incomesModel.js";
+import Report from "../models/report.js";
+import UserTransaction from "../models/user_transactions.js";
 
 export const Expenses = async (req, res) => {
   try {

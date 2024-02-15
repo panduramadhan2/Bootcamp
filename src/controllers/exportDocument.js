@@ -1,16 +1,9 @@
-// Your endpoint file (e.g., exportController.js)
-
-import express from "express";
-import {
-  Expense,
-  ExpensePlan,
-  Income,
-  UserTransaction,
-  Report,
-} from "../models"; // Assuming you have exported your models appropriately
-import { exportData } from "../utils/exportUtils"; // Adjust the path based on your project structure
-
-// const router = express.Router();
+import ExpensePlan from "../models/expense_plans.js";
+import Expense from "../models/expensesModel.js";
+import Income from "../models/incomesModel.js";
+import Report from "../models/report.js";
+import UserTransaction from "../models/user_transactions.js";
+import { exportData } from "../utils/exportDocumentUtils.js"; // Adjust the path based on your project structure
 
 export const ExportDocument = async (req, res) => {
   const { type, startDate, endDate } = req.body;
