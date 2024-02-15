@@ -11,6 +11,11 @@ router.post("/login", Login);
 router.post("/create-pin", createPin);
 router.post("/request-reset", forgotPassword);
 router.post("/reset-password", resetPassword);
-// router.post("/activate", Activation);
+//filtering fiture
+router.post("/expenses/filter");
+router.post("/expenses-plans/filter");
+router.post("/incomes/filter");
+router.post("/user-transactions/filter");
+router.post("/report/filter");
 
 export default router;

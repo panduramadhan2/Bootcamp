@@ -16,11 +16,14 @@ export const Register = async (req, res) => {
     // Generate a registration code
     const registrationCode = generateRegistrationCode(); // Implement this function
 
+    // Hash the password before storing it in the database
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create a new user record in the database
     const newUser = await User.create({
       name,
       email,
-      password,
+      password: hashedPassword,
       registrationCode,
     });
 
@@ -39,15 +42,12 @@ export const Register = async (req, res) => {
 
 export const Login = async (req, res) => {
   try {
-    const { name, email, password, registrationCode } = req.body;
+    const { email, password } = req.body;
 
-    // Find the user by email, password, and registration code
+    // Find the user by email
     const user = await User.findOne({
       where: {
-        name,
         email,
-        password,
-        registrationCode,
       },
     });
 
@@ -55,6 +55,13 @@ export const Login = async (req, res) => {
       return res
         .status(401)
         .json({ error: "Invalid credentials or registration code." });
+    }
+
+    // Compare the provided password with the stored hashed password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid password." });
     }
 
     // If PIN is not provided, redirect to PIN creation endpoint
@@ -67,15 +74,15 @@ export const Login = async (req, res) => {
     }
 
     // If PIN is provided, validate and update the user's PIN in the database
-    if (pin) {
-      const pinAsString = pin.toString(); // Convert to string to handle leading zeros
+    if (req.body.pin) {
+      const pinAsString = req.body.pin.toString(); // Convert to string to handle leading zeros
 
       if (pinAsString.length !== 8 || !/^\d+$/.test(pinAsString)) {
         return res.status(400).json({ error: "PIN must be 8 digits." });
       }
 
       const hashedPin = await bcrypt.hash(pinAsString, 10);
-      user = await user.update({ pin: hashedPin });
+      await user.update({ pin: hashedPin });
     }
 
     res.json({
